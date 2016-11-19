@@ -17,8 +17,16 @@ standalone, networked scanner in an effort to go paperless.
   `/`)
 - Tweak the default settings in `etc/default/insaned`
 - Register `insaned` as a systemd service: `systemctl daemon-reload &&
-  systemctl enable insaned`
+  systemctl enable insaned && systemctl start insaned` (cf note below if enable
+doesn't work)
 - Check it's running: `systemctl status insaned`
+
+> Debian 8 ships with systemd 215 which has trouble enabling symlinked
+> services (See systemd/systemd#1515.) This has been fixed in systemd 232
+> (https://github.com/systemd/systemd/pull/3806), but jessie-backports only has
+> 230. If this ever changes, install from backports with `apt-get -t
+> jessie-backports install systemd`. In the meantime, copy the service file:
+> `cp etc/systemd/system/insaned.service /etc/systemd/system/insaned.service`
 
 # Usage
 

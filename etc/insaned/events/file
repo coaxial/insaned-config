@@ -1,1 +1,18 @@
 #!/usr/bin/env bash
+# Scan page to a temporary PDF file to be assembled when the `extra` button is
+# pressed.
+
+TMPFILE="/tmp/scan_$(date "+%Y%m%d_%H%M%S").pnm"
+LOGFILE="/var/log/insaned.log"
+PAPERWIDTH="215.9" # mm
+PAPERHEIGHT="279.4" # mm
+
+echo "$(date) | scan: button pressed, saving page to $TMPFILE..." >> "$LOGFILE"
+
+scanimage \
+--resolution 300 \
+--mode gray \
+-x $PAPERWIDTH \
+-y $PAPERHEIGHT \
+> "$TMPFILE" &&\
+echo "$(date) | scan: page saved to $TMPFILE" >> "$LOGFILE"
