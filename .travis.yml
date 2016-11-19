@@ -1,0 +1,14 @@
+language: sh
+
+addons:
+  apt:
+    sources:
+      - debian-sid
+    packages:
+      - shellcheck
+
+script:
+  - shellcheck -x etc/insaned/events/{file,extra,scan,copy,email}
+
+notifications:
+  email: false
