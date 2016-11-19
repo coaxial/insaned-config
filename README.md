@@ -71,6 +71,12 @@ Kept at `/var/log/insaned.log`, can be overridden in each script.
 Eahch log entry follows the following format:
 `<timestamp> | <insaned button name>: <log message>`
 
+# Acknowledgements
+
+- `textcleaner` by Fred Weinhaus, free for non-commercial use only. More
+  details and a ton of other useful ImageMagick scripts at
+http://www.fmwconcepts.com/imagemagick
+
 # TODO
 
 - A cron job to reap documents older than X days in `/scans/` to avoid clutter
