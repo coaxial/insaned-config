@@ -10,6 +10,8 @@ standalone, networked scanner in an effort to go paperless.
 > any other platform. If you need to build it for yourself, see the [insaned
 > project repo](https://github.com/abusenius/insaned) for instructions.
 
+[![Build Status](https://travis-ci.org/Coaxial/insaned-config.svg?branch=master)](https://travis-ci.org/Coaxial/insaned-config)
+
 # Installation
 
 - Depends on `libsane` and `imagemagick`
