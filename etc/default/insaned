@@ -1,0 +1,3 @@
+# Poll buttons every 250ms, the default 500ms is too slow. More often
+# would be nicer, but eats too much CPU
+INSANED_EXTRAOPTS='-s 250'
