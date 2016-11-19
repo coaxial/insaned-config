@@ -80,5 +80,6 @@ http://www.fmwconcepts.com/imagemagick
 # TODO
 
 - A cron job to reap documents older than X days in `/scans/` to avoid clutter
+- Another cron job to git pull periodically to update the code
 - Export `/scans/` as a NFS share
 - Figure out how the email function will be implemented
