@@ -62,6 +62,15 @@ it to the printer with `lpr`.
 
 Not implemented yet.
 
+# Logs
+
+Kept at `/var/log/insaned.log`, can be overridden in each script.
+
+## Format
+
+Eahch log entry follows the following format:
+`<timestamp> | <insaned button name>: <log message>`
+
 # TODO
 
 - A cron job to reap documents older than X days in `/scans/` to avoid clutter
