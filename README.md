@@ -31,7 +31,7 @@ For reference, on the LiDE 210, these are the buttons mappings:
 Label on scanner | `insaned` label
 --- | ---
 PDF | file
-PDF ▶︎\| extra
+PDF ▶︎\| | extra
 Autoscan | scan
 Copy | copy
 Email | email
