@@ -12,6 +12,8 @@ SCANSDIR="/scans"
 echo "$(date) | extra: button pressed, assembling $TMPFILES into
 $PDFFILE..." >> "$LOGFILE"
 
+mkdir -p $CLEANEDDIR
+
 # textcleaner can only process single pages
 for tmpfile in $TMPFILES
 do
