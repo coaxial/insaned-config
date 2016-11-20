@@ -2,25 +2,28 @@
 # All pages have been scanned, time to enhance them for OCR and concat them to
 # a single PDF file
 
-TMPFILES="/tmp/scan_*.pnm"
-CLEANEDDIR="/tmp/cleaned/"
+TMPDIR="/tmp"
+TMPFILES="$TMPDIR/scan_*.pnm"
+CLEANEDDIR="$TMPDIR/cleaned"
 LOGFILE="/var/log/insaned.log"
-PDFFILE="/tmp/$(date "+%Y%m%d_%H%M%S").pdf"
-SCANSDIR="/scans/"
+PDFFILE="$TMPDIR/$(date "+%Y%m%d_%H%M%S").pdf"
+SCANSDIR="/scans"
 
-echo "$(date) | extra: button pressed, assembling $TMPFILES into $PDFFILE..." >> "$LOGFILE"
+echo "$(date) | extra: button pressed, assembling $TMPFILES into
+$PDFFILE..." >> "$LOGFILE"
 
 # textcleaner can only process single pages
 for tmpfile in $TMPFILES
 do
+
   echo "$(date) | extra: cleaning $tmpfile..." >> "$LOGFILE"
-  textcleaner -g "$tmpfile" "$CLEANEDDIR/$tmpfile" &&\
+  textcleaner -g "$tmpfile" "$CLEANEDDIR/$(basename "$tmpfile")" &&\
   echo "$(date) | extra: moving cleaned file $tmpfile to
-  $CLEANEDDIR/$tmpfile..." >> "$LOGFILE" &&\
+  $CLEANEDDIR/$(basename "$tmpfile")..." >> "$LOGFILE" &&\
   rm "$tmpfile"
 done
  
-convert "$CLEANEDDIR/*" "$PDFFILE" &&\
+convert "$CLEANEDDIR/*.pnm" "$PDFFILE" &&\
 echo "$(date) | extra: PDF file saved to $PDFFILE" >> "$LOGFILE" &&\
 mv "$PDFFILE" "$SCANSDIR" &&\
 echo "$(date) | extra: moved $PDFFILE to $SCANSDIR" >> "$LOGFILE" &&\
