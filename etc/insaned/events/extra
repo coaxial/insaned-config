@@ -3,28 +3,49 @@
 # a single PDF file
 
 TMPDIR="/tmp"
-TMPFILES="$TMPDIR/scan_*.pnm"
-CLEANEDDIR="$TMPDIR/cleaned"
+HOLDINGDIR="$(dbus-uuidgen)"
+SCANNEDFILES="scan_*.pnm"
+CLEANEDDIR="$TMPDIR/$HOLDINGDIR/cleaned"
 LOGFILE="/var/log/insaned.log"
-PDFFILE="$TMPDIR/$(date "+%Y%m%d_%H%M%S").pdf"
+PDFFILE="$TMPDIR/$HOLDINGDIR/$(date "+%Y%m%d_%H%M%S").pdf"
 SCANSDIR="/scans"
+LOCKFILE="$TMPDIR/extra.lock"
 
-echo "$(date) | extra: button pressed, assembling $TMPFILES into $PDFFILE..." >> "$LOGFILE"
+echo "$(date) | extra: button pressed, assembling $TMPDIR/$SCANNEDFILES into $PDFFILE..." >> "$LOGFILE"
 
-mkdir -p $CLEANEDDIR
+if [ -f $LOCKFILE ]; then
+  echo "$(date) | extra: ERROR, another assembling operation is in progress (id: $(cat "$LOCKFILE"))" >> $LOGFILE
+  exit 0
+fi
 
-# textcleaner can only process single pages
-for tmpfile in $TMPFILES
-do
+mkdir -p "$CLEANEDDIR"
 
-  echo "$(date) | extra: cleaning $tmpfile..." >> "$LOGFILE"
-  textcleaner -g "$tmpfile" "$CLEANEDDIR/$(basename "$tmpfile")" &&\
-  echo "$(date) | extra: moving cleaned file $tmpfile to $CLEANEDDIR/$(basename "$tmpfile")..." >> "$LOGFILE" &&\
-  rm "$tmpfile"
-done
- 
-convert "$CLEANEDDIR/*.pnm" "$PDFFILE" &&\
-echo "$(date) | extra: PDF file saved to $PDFFILE" >> "$LOGFILE" &&\
-mv "$PDFFILE" "$SCANSDIR" &&\
-echo "$(date) | extra: moved $PDFFILE to $SCANSDIR" >> "$LOGFILE" &&\
-rmdir "$CLEANEDDIR"
+# we'll run the conversion as a background job, we need to move the pages to a
+# separate dir so they don't get mixed up with the next scan
+
+mv $TMPDIR/$SCANNEDFILES "$TMPDIR/$HOLDINGDIR"
+
+echo "$HOLDINGDIR" >> "$LOCKFILE"
+
+{
+  # textcleaner can only process single pages
+  for tmpfile in $TMPDIR/$HOLDINGDIR/$SCANNEDFILES
+  do
+
+    echo "$(date) | extra: cleaning $tmpfile..." >> "$LOGFILE"
+    textcleaner -g "$tmpfile" "$CLEANEDDIR/$(basename "$tmpfile")" &&\
+    echo "$(date) | extra: moving cleaned file $tmpfile to $CLEANEDDIR/$(basename "$tmpfile")..." >> "$LOGFILE" &&\
+    rm "$tmpfile"
+  done
+   
+  convert "$CLEANEDDIR/*.pnm" "$PDFFILE" &&\
+  echo "$(date) | extra: PDF file saved to $PDFFILE" >> "$LOGFILE" &&\
+  mv "$PDFFILE" "$SCANSDIR" &&\
+  echo "$(date) | extra: moved $PDFFILE to $SCANSDIR" >> "$LOGFILE" &&\
+  rmdir --ignore=fail-on-non-empty "$TMPDIR/$HOLDINGDIR"
+  rm "$LOCKFILE"
+} &
+
+echo "$(date) | extra: cleaning pages in the background..." >> $LOGFILE
+wait
+echo "$(date) | extra: background processing returned" >> $LOGFILE
