@@ -9,8 +9,7 @@ LOGFILE="/var/log/insaned.log"
 PDFFILE="$TMPDIR/$(date "+%Y%m%d_%H%M%S").pdf"
 SCANSDIR="/scans"
 
-echo "$(date) | extra: button pressed, assembling $TMPFILES into
-$PDFFILE..." >> "$LOGFILE"
+echo "$(date) | extra: button pressed, assembling $TMPFILES into $PDFFILE..." >> "$LOGFILE"
 
 mkdir -p $CLEANEDDIR
 
@@ -20,8 +19,7 @@ do
 
   echo "$(date) | extra: cleaning $tmpfile..." >> "$LOGFILE"
   textcleaner -g "$tmpfile" "$CLEANEDDIR/$(basename "$tmpfile")" &&\
-  echo "$(date) | extra: moving cleaned file $tmpfile to
-  $CLEANEDDIR/$(basename "$tmpfile")..." >> "$LOGFILE" &&\
+  echo "$(date) | extra: moving cleaned file $tmpfile to $CLEANEDDIR/$(basename "$tmpfile")..." >> "$LOGFILE" &&\
   rm "$tmpfile"
 done
  
