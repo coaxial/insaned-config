@@ -23,6 +23,8 @@ mkdir -p "$CLEANEDDIR"
 # we'll run the conversion as a background job, we need to move the pages to a
 # separate dir so they don't get mixed up with the next scan
 
+# shellcheck disable=SC2086
+# the glob must be expanded
 mv $TMPDIR/$SCANNEDFILES "$TMPDIR/$HOLDINGDIR"
 
 echo "$HOLDINGDIR" >> "$LOCKFILE"
@@ -42,10 +44,6 @@ echo "$HOLDINGDIR" >> "$LOCKFILE"
   echo "$(date) | extra: PDF file saved to $PDFFILE" >> "$LOGFILE" &&\
   mv "$PDFFILE" "$SCANSDIR" &&\
   echo "$(date) | extra: moved $PDFFILE to $SCANSDIR" >> "$LOGFILE" &&\
-  rmdir --ignore=fail-on-non-empty "$TMPDIR/$HOLDINGDIR"
+  rm -rf "${TMPDIR:?}/$HOLDINGDIR"
   rm "$LOCKFILE"
 } &
-
-echo "$(date) | extra: cleaning pages in the background..." >> $LOGFILE
-wait
-echo "$(date) | extra: background processing returned" >> $LOGFILE
