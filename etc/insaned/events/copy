@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+PAPERWIDTH="215.9" # mm
+PAPERHEIGHT="279.4" # mm
+
+scanimage \
+--resolution 300 \
+--mode lineart \ # ok results with lineart, faster than converting grayscale
+                 # to bw with imagemagick
+-x $PAPERWIDTH \
+-y $PAPERHEIGHT \
+-contrast=35 \
+| pnmtops | lp
