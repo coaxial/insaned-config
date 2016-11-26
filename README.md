@@ -52,11 +52,12 @@ Use the Autoscan button. The document will be saved as a 600 dpi TIFF file in
 
 ## Photocopying documents
 
-Scan the page with the Copy button. It will make a grayscale 300 dpi scan of
-the page, convert it to a black and white document using imagemagick, and send
-it to the printer with `lpr`.
+Scan the page with the Copy button. It will make a black and white 300 dpi scan
+of the page, resample it to fit on a single page, and send it to the printer.
 
 > Note that a printer must be configured for this to work.
+> If your printer doesn't have ARM drivers (cough cough, Brother), or doesn't
+> offer Linux drivers, try Generic PCL 6/PCL XL.
 
 ## Email
 

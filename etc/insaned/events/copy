@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+LOGFILE="/var/log/insaned.log"
+PAPERWIDTH="215.9" # mm
+PAPERHEIGHT="279.4" # mm
+
+echo "$(date) | copy: button pressed, sending page to printer..." >> "$LOGFILE"
+
+# scanning to lineart is faster than converting grayscale to bw with
+# imageagick while giving a decent enough result
+(scanimage \
+  --resolution 300 \
+  --mode lineart \
+  -x "$PAPERWIDTH" \
+  -y "$PAPERHEIGHT" \
+  --contrast=35 \
+  | pnmtops | lp) 2>>"$LOGFILE"
+
+if [ $? = 0 ]
+then
+  echo "$(date) | copy: page sent to printer" >> "$LOGFILE"
+else
+  echo "$(date) | copy: something went wrong" >> "$LOGFILE"
+  exit 1
+fi
