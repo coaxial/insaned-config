@@ -1,18 +1,47 @@
 #!/usr/bin/env bash
-# Scan page to a temporary PDF file to be assembled when the `extra` button is
-# pressed.
 
-TMPFILE="/tmp/scan_$(date "+%Y%m%d_%H%M%S").pnm"
-LOGFILE="/var/log/insaned.log"
-PAPERWIDTH="215.9" # mm
-PAPERHEIGHT="279.4" # mm
+# exit when a command doesn't exit with 0
+set -euo pipefail
 
-echo "$(date) | scan: button pressed, saving page to $TMPFILE..." >> "$LOGFILE"
+out_file="/tmp/scan_$(date "+%Y%m%d_%H%M%S").pnm"
+log_file="/var/log/insaned.log"
+event_name="file"
+paper_width="215.9" # mm
+paper_height="279.4" # mm
 
-scanimage \
---resolution 300 \
---mode gray \
--x $PAPERWIDTH \
--y $PAPERHEIGHT \
-> "$TMPFILE" &&\
-echo "$(date) | scan: page saved to $TMPFILE" >> "$LOGFILE"
+handle_exit() {
+  exit_code="$1"
+
+  if [ "$exit_code" -ne 0 ]
+  then
+    log_message "something went wrong :("
+    exit 1
+  else
+    exit 0
+  fi
+}
+
+trap 'handle_exit $?' EXIT
+
+log_message() {
+  default_message="no message passed to logging function"
+
+  echo "$(date) | $event_name: ${1-$default_message}" >> "$log_file"
+}
+
+scan() {
+  scanimage \
+    --resolution 300 \
+    --mode gray \
+    -x "$paper_width" \
+    -y "$paper_height" \
+  > "$out_file"
+}
+
+main() {
+  log_message "button pressed, saving page to $out_file"
+  scan
+  log_message "page saved to $out_file"
+}
+
+main 2>>"$log_file"

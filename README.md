@@ -14,7 +14,8 @@ standalone, networked scanner in an effort to go paperless.
 
 # Installation
 
-- Depends on `libsane` and `imagemagick`
+- Depends on `libsane`, `imagemagick`, and GNU parallel >= 20161122
+- Install the latest GNU parallel with `(wget -O - pi.dk/3 || curl pi.dk/3/) | bash`
 - Copy or symlink the files in their respective directories (paths relative to
   `/`)
 - Tweak the default settings in `etc/default/insaned`
@@ -84,6 +85,7 @@ Eahch log entry follows the following format:
 
 # Acknowledgements
 
+- GNU parallel by O. Tange: https://www.gnu.org/software/parallel/
 - `textcleaner` by Fred Weinhaus, free for non-commercial use only. More
   details and a ton of other useful ImageMagick scripts at
 http://www.fmwconcepts.com/imagemagick

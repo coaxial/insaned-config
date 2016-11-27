@@ -1,49 +1,85 @@
 #!/usr/bin/env bash
-# All pages have been scanned, time to enhance them for OCR and concat them to
-# a single PDF file
 
-TMPDIR="/tmp"
-HOLDINGDIR="$(dbus-uuidgen)"
-SCANNEDFILES="scan_*.pnm"
-CLEANEDDIR="$TMPDIR/$HOLDINGDIR/cleaned"
-LOGFILE="/var/log/insaned.log"
-PDFFILE="$TMPDIR/$HOLDINGDIR/$(date "+%Y%m%d_%H%M%S").pdf"
-SCANSDIR="/scans"
-LOCKFILE="$TMPDIR/extra.lock"
+# exit when a command doesn't exit with 0
+set -euo pipefail
 
-echo "$(date) | extra: button pressed, assembling $TMPDIR/$SCANNEDFILES into $PDFFILE..." >> "$LOGFILE"
+tmp_dir="/tmp"
+uuid="$(dbus-uuidgen)"
+holding_dir="$tmp_dir/$uuid"
+pages="scan_*.pnm"
+out_file="$(date "+%Y%m%d_%H%M%S").pdf"
+log_file="/var/log/insaned.log"
+event_name="extra"
+final_dir="/scans"
+clean_prefix="clean"
 
-if [ -f $LOCKFILE ]; then
-  echo "$(date) | extra: ERROR, another assembling operation is in progress (id: $(cat "$LOCKFILE"))" >> $LOGFILE
-  exit 0
-fi
+handle_exit() {
+  exit_code="$1"
 
-mkdir -p "$CLEANEDDIR"
+  if [ "$exit_code" -ne 0 ]
+  then
+    log_message "something went wrong :("
+    exit 1
+  else
+    exit 0
+  fi
+}
 
-# we'll run the conversion as a background job, we need to move the pages to a
-# separate dir so they don't get mixed up with the next scan
+trap 'handle_exit $?' EXIT
 
-# shellcheck disable=SC2086
-# the glob must be expanded
-mv $TMPDIR/$SCANNEDFILES "$TMPDIR/$HOLDINGDIR"
+log_message() {
+  default_message="no message passed to logging function"
 
-echo "$HOLDINGDIR" >> "$LOCKFILE"
+  echo "$(date) | $event_name: ${1-$default_message}" >> "$log_file"
+}
 
-{
-  # textcleaner can only process single pages
-  for tmpfile in $TMPDIR/$HOLDINGDIR/$SCANNEDFILES
-  do
+mk_holding_dir() {
+  mkdir -p "$holding_dir/"
+}
 
-    echo "$(date) | extra: cleaning $tmpfile..." >> "$LOGFILE"
-    textcleaner -g "$tmpfile" "$CLEANEDDIR/$(basename "$tmpfile")" &&\
-    echo "$(date) | extra: moving cleaned file $tmpfile to $CLEANEDDIR/$(basename "$tmpfile")..." >> "$LOGFILE" &&\
-    rm "$tmpfile"
-  done
-   
-  convert "$CLEANEDDIR/*.pnm" "$PDFFILE" &&\
-  echo "$(date) | extra: PDF file saved to $PDFFILE" >> "$LOGFILE" &&\
-  mv "$PDFFILE" "$SCANSDIR" &&\
-  echo "$(date) | extra: moved $PDFFILE to $SCANSDIR" >> "$LOGFILE" &&\
-  rm -rf "${TMPDIR:?}/$HOLDINGDIR"
-  rm "$LOCKFILE"
-} &
+mv_pages() {
+  # Moves pages to a unique directory so they don't get mixed up with the next
+  # document scan while this is processing
+  log_message "moving pages to $holding_dir/..."
+  # shellcheck disable=SC2086
+  mv "$tmp_dir/"$pages "$holding_dir/"
+}
+
+clean_pages() {
+  log_message "cleaning pages..."
+  # FIXME dont hardcode server list, check if host is up beforehand and use
+  # local if not
+  # shellcheck disable=SC2027
+  # shellcheck disable=SC2086
+  parallel --workdir ... -S 2/user@scanner-helper --trc \
+    "{//}/${clean_prefix}_{/}" "textcleaner -g {} {//}/${clean_prefix}_{/}" \
+    ::: "$holding_dir/"$pages
+
+  log_message "all pages cleaned"
+}
+
+concat_pages() {
+  # assemble every page to a single PDF
+  page_count="$(find "$holding_dir/" -maxdepth 1 -type f -name "scan_*.pnm" | wc -l)"
+
+  log_message "assembling pages into $out_file"
+  convert "$holding_dir/${clean_prefix}_scan_*.pnm" "$holding_dir/$out_file"
+  log_message "$page_count pages successfully assembled into $out_file"
+}
+
+cleanup() {
+  mv "$holding_dir/$out_file" "$final_dir"
+  rm -rf "$holding_dir"
+}
+
+main() {
+  log_message "button pressed, creating $out_file..."
+  mk_holding_dir
+  mv_pages
+  clean_pages
+  concat_pages
+  cleanup
+  log_message "done"
+}
+
+main 2>>"$log_file"
