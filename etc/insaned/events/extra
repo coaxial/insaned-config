@@ -12,6 +12,7 @@ log_file="/var/log/insaned.log"
 event_name="extra"
 final_dir="/scans"
 clean_prefix="clean"
+textcleaner_location="/usr/local/lib/textcleaner"
 
 handle_exit() {
   exit_code="$1"
@@ -49,11 +50,13 @@ clean_pages() {
   log_message "cleaning pages..."
   # FIXME dont hardcode server list, check if host is up beforehand and use
   # local if not
+  # Supplying textcleaner as a basefile so any host can run the command without
+  # requiring textcleaner to be installed and executable
   # shellcheck disable=SC2027
   # shellcheck disable=SC2086
   parallel --workdir ... -S 2/user@scanner-helper --trc \
-    "{//}/${clean_prefix}_{/}" "textcleaner -g {} {//}/${clean_prefix}_{/}" \
-    ::: "$holding_dir/"$pages
+    "{//}/${clean_prefix}_{/}" "bash textcleaner -g {} {//}/${clean_prefix}_{/}" \
+    --basefile "$textcleaner_location" ::: "$holding_dir/"$pages
 
   log_message "all pages cleaned"
 }
