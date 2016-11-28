@@ -8,4 +8,4 @@ ln -s "$(pwd)/etc/default/insaned" /etc/default/insaned
 # ln -s "$(pwd)/etc/systemd/system/insaned.service" /etc/systemd/system/insaned.service
 cp etc/systemd/system/insaned.service /etc/systemd/system/insaned.service
 ln -s "$(pwd)/usr/local/bin/insaned" /usr/local/bin/insaned
-ln -s "$(pwd)/usr/local/bin/textcleaner" /usr/local/bin/textcleaner
+ln -s "$(pwd)/usr/local/lib/textcleaner" /usr/local/lib/textcleaner
