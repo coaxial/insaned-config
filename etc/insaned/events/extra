@@ -4,7 +4,7 @@
 set -euo pipefail
 
 tmp_dir="/tmp"
-uuid="$(dbus-uuidgen)"
+uuid="$(dbus-uuidgen)/."
 holding_dir="$tmp_dir/$uuid"
 pages="scan_*.pnm"
 out_file="$(date "+%Y%m%d_%H%M%S").pdf"
@@ -12,7 +12,9 @@ log_file="/var/log/insaned.log"
 event_name="extra"
 final_dir="/scans"
 clean_prefix="clean"
-textcleaner_location="/usr/local/lib/textcleaner"
+# /./ is required because of rsync, won't work without it, cf
+# https://unix.stackexchange.com/questions/326457/gnu-parallel-and-basefile-outside-of-pwd/326563#
+textcleaner_location="/./usr/local/lib/textcleaner"
 
 handle_exit() {
   exit_code="$1"
@@ -48,15 +50,20 @@ mv_pages() {
 
 clean_pages() {
   log_message "cleaning pages..."
+  log_message "DEBUG: $holding_dir/$pages"
   # FIXME dont hardcode server list, check if host is up beforehand and use
   # local if not
   # Supplying textcleaner as a basefile so any host can run the command without
   # requiring textcleaner to be installed and executable
   # shellcheck disable=SC2027
   # shellcheck disable=SC2086
-  parallel --workdir ... -S 2/user@scanner-helper --trc \
-    "{//}/${clean_prefix}_{/}" "bash textcleaner -g {} {//}/${clean_prefix}_{/}" \
-    --basefile "$textcleaner_location" ::: "$holding_dir/"$pages
+  parallel --workdir ... -S 2/user@scanner-helper \
+    --transferfile "{1}"\
+    --cleanup\
+    --trc "${clean_prefix}_{2/}"\
+    --link\
+    "bash {1} -g {2/} ${clean_prefix}_{2/}"\
+    ::: "$textcleaner_location" ::: "$holding_dir/"$pages
 
   log_message "all pages cleaned"
 }
