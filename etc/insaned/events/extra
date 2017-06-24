@@ -15,6 +15,8 @@ clean_prefix="clean"
 # /./ is required because of rsync, won't work without it, cf
 # https://unix.stackexchange.com/questions/326457/gnu-parallel-and-basefile-outside-of-pwd/326563#
 textcleaner_location="/./usr/local/lib/textcleaner"
+CLEAN_PAGES=false # switch to true to enable textcleaner (computation
+# intensive, slow as molasses on most SBCs)
 
 handle_exit() {
   exit_code="$1"
@@ -43,29 +45,36 @@ mk_holding_dir() {
 mv_pages() {
   # Moves pages to a unique directory so they don't get mixed up with the next
   # document scan while this is processing
-  log_message "moving pages to $holding_dir/..."
+  log_message "moving pages to $holding_dir/"
   # shellcheck disable=SC2086
   mv "$tmp_dir/"$pages "$holding_dir/"
 }
 
 clean_pages() {
-  log_message "cleaning pages..."
-  log_message "DEBUG: $holding_dir/$pages"
-  # FIXME dont hardcode server list, check if host is up beforehand and use
-  # local if not
-  # Supplying textcleaner as a basefile so any host can run the command without
-  # requiring textcleaner to be installed and executable
-  # shellcheck disable=SC2027
-  # shellcheck disable=SC2086
-  parallel --workdir ... -S 2/user@scanner-helper \
-    --transferfile "{1}"\
-    --cleanup\
-    --trc "${clean_prefix}_{2/}"\
-    --link\
-    "bash {1} -g {2/} ${clean_prefix}_{2/}"\
-    ::: "$textcleaner_location" ::: "$holding_dir/"$pages
+  if [ "$CLEAN_PAGES" = true ]
+  then
+    log_message "cleaning pages..."
+    log_message "DEBUG: $holding_dir/$pages"
+    # FIXME dont hardcode server list, check if host is up beforehand and use
+    # local if not
+    # Supplying textcleaner as a basefile so any host can run the command without
+    # requiring textcleaner to be installed and executable
+    # shellcheck disable=SC2027
+    # shellcheck disable=SC2086
+    parallel --workdir ... -S 2/user@scanner-helper \
+      --transferfile "{1}"\
+      --cleanup\
+      --trc "${clean_prefix}_{2/}"\
+      --link\
+      "bash {1} -g {2/} ${clean_prefix}_{2/}"\
+      ::: "$textcleaner_location" ::: "$holding_dir/./"$pages
+      # Won't work without /./ because of rsync cf
+      # https://unix.stackexchange.com/questions/326457/gnu-parallel-and-basefile-outside-of-pwd/326563#
 
-  log_message "all pages cleaned"
+    log_message "all pages cleaned"
+  else
+    log_message "cleaning disabled, skipping"
+  fi
 }
 
 concat_pages() {
@@ -73,7 +82,16 @@ concat_pages() {
   page_count="$(find "$holding_dir/" -maxdepth 1 -type f -name "scan_*.pnm" | wc -l)"
 
   log_message "assembling pages into $out_file"
-  convert "$holding_dir/${clean_prefix}_scan_*.pnm" "$holding_dir/$out_file"
+
+  files_to_convert="$holding_dir/scan_*.pnm"
+
+  if [ "$CLEAN_PAGES" = true ]
+  then
+    files_to_convert="$holding_dir/${clean_prefix}_scan_*.pnm"
+  fi
+
+  convert "$files_to_convert" "$holding_dir/$out_file"
+
   log_message "$page_count pages successfully assembled into $out_file"
 }
 
