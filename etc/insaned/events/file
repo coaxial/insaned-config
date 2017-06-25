@@ -44,4 +44,5 @@ main() {
   log_message "page saved to $out_file"
 }
 
+# Redirect errors to logfile
 main 2>>"$log_file"

@@ -113,4 +113,5 @@ main() {
   log_message "done"
 }
 
+# Redirect errors to logfile
 main 2>>"$log_file"
