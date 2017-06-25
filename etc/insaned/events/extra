@@ -98,6 +98,7 @@ concat_pages() {
 cleanup() {
   mv "$holding_dir/$out_file" "$final_dir/$out_file"
   rm -rf "$holding_dir"
+  log_message "PDF file saved as $final_dir/$out_file"
 }
 
 main() {
