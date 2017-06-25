@@ -14,11 +14,15 @@ standalone, networked scanner in an effort to go paperless.
 
 # Installation
 
-- Depends on `libsane`, `imagemagick`, and GNU parallel >= 20161122
-- Install the latest GNU parallel with `(wget -O - pi.dk/3 || curl pi.dk/3/) | bash`
+- Depends on `libsane`, `insaned`, and `imagemagick`
+- Depends on `textcleaner` and GNU parallel >= 20161122 if option toggled
+  (`$CLEAN_PAGES=true` in `etc/insaned/events/extra`)
+- If needed, install the latest GNU parallel with `(wget -O - pi.dk/3 || curl
+  pi.dk/3/) | bash`
 - Copy or symlink the files in their respective directories (paths relative to
   `/`)
 - Tweak the default settings in `etc/default/insaned`
+- Run the `setup.sh` script (or symlink and mv manually)
 - Register `insaned` as a systemd service: `systemctl daemon-reload &&
   systemctl enable insaned && systemctl start insaned` (cf note below if enable
 doesn't work)
@@ -58,6 +62,8 @@ The resulting PDF file will be saved at `/scans/` and named
 
 ## Scanning pictures/color documents
 
+> This isn't implemented yet
+
 Use the Autoscan button. The document will be saved as a 600 dpi TIFF file in
 `/scans/` under `YYYYMMDD_HHMMSS.tif`.
 
@@ -76,7 +82,8 @@ Not implemented yet.
 
 # Logs
 
-Kept at `/var/log/insaned.log`, can be overridden in each script.
+Kept at `/var/log/insaned.log`, can be overridden in each script. To see what's
+happening in real time, `tail -F /var/log/insaned.log`.
 
 ## Format
 
@@ -89,6 +96,7 @@ Eahch log entry follows the following format:
 - `textcleaner` by Fred Weinhaus, free for non-commercial use only. More
   details and a ton of other useful ImageMagick scripts at
 http://www.fmwconcepts.com/imagemagick
+- `insaned` by [Abusenius](https://github.com/abusenius)
 
 # TODO
 
