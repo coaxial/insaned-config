@@ -4,7 +4,7 @@
 set -euo pipefail
 
 tmp_dir="/tmp"
-uuid="$(dbus-uuidgen)/."
+uuid="$(dbus-uuidgen)"
 holding_dir="$tmp_dir/$uuid"
 pages="scan_*.pnm"
 out_file="$(date "+%Y%m%d_%H%M%S").pdf"
