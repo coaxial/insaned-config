@@ -1,1 +1,117 @@
 #!/usr/bin/env bash
+
+# exit when a command doesn't exit with 0
+set -euo pipefail
+
+tmp_dir="/tmp"
+uuid="$(dbus-uuidgen)/."
+holding_dir="$tmp_dir/$uuid"
+pages="scan_*.pnm"
+out_file="$(date "+%Y%m%d_%H%M%S").pdf"
+log_file="/var/log/insaned.log"
+event_name="extra"
+final_dir="/scans"
+clean_prefix="clean"
+# /./ is required because of rsync, won't work without it, cf
+# https://unix.stackexchange.com/questions/326457/gnu-parallel-and-basefile-outside-of-pwd/326563#
+textcleaner_location="/./usr/local/lib/textcleaner"
+CLEAN_PAGES=false # switch to true to enable textcleaner (computation
+# intensive, slow as molasses on most SBCs)
+
+handle_exit() {
+  exit_code="$1"
+
+  if [ "$exit_code" -ne 0 ]
+  then
+    log_message "something went wrong :("
+    exit 1
+  else
+    exit 0
+  fi
+}
+
+trap 'handle_exit $?' EXIT
+
+log_message() {
+  default_message="no message passed to logging function"
+
+  echo "$(date) | $event_name: ${1-$default_message}" >> "$log_file"
+}
+
+mk_holding_dir() {
+  mkdir -p "$holding_dir/"
+}
+
+mv_pages() {
+  # Moves pages to a unique directory so they don't get mixed up with the next
+  # document scan while this is processing
+  log_message "moving pages to $holding_dir/"
+  # shellcheck disable=SC2086
+  mv "$tmp_dir/"$pages "$holding_dir/"
+}
+
+clean_pages() {
+  if [ "$CLEAN_PAGES" = true ]
+  then
+    log_message "cleaning pages..."
+    log_message "DEBUG: $holding_dir/$pages"
+    # FIXME dont hardcode server list, check if host is up beforehand and use
+    # local if not
+    # Supplying textcleaner as a basefile so any host can run the command without
+    # requiring textcleaner to be installed and executable
+    # shellcheck disable=SC2027
+    # shellcheck disable=SC2086
+    parallel --workdir ... -S 2/user@scanner-helper \
+      --transferfile "{1}"\
+      --cleanup\
+      --trc "${clean_prefix}_{2/}"\
+      --link\
+      "bash {1} -g {2/} ${clean_prefix}_{2/}"\
+      ::: "$textcleaner_location" ::: "$holding_dir/./"$pages
+      # Won't work without /./ because of rsync cf
+      # https://unix.stackexchange.com/questions/326457/gnu-parallel-and-basefile-outside-of-pwd/326563#
+
+    log_message "all pages cleaned"
+  else
+    log_message "cleaning disabled, skipping"
+  fi
+}
+
+concat_pages() {
+  # assemble every page to a single PDF
+  page_count="$(find "$holding_dir/" -maxdepth 1 -type f -name "scan_*.pnm" | wc -l)"
+
+  log_message "assembling pages into $out_file"
+
+  files_to_convert="$holding_dir/scan_*.pnm"
+
+  if [ "$CLEAN_PAGES" = true ]
+  then
+    files_to_convert="$holding_dir/${clean_prefix}_scan_*.pnm"
+  fi
+
+  convert "$files_to_convert" "$holding_dir/$out_file"
+
+  log_message "$page_count pages successfully assembled into $out_file"
+}
+
+cleanup() {
+  # In case $final_dir doesn't exist
+  mkdir -p "$final_dir"
+  mv "$holding_dir/$out_file" "$final_dir/"
+  rm -rf "$holding_dir"
+  log_message "PDF file saved as $final_dir/$out_file"
+}
+
+main() {
+  log_message "button pressed, creating $out_file..."
+  mk_holding_dir
+  mv_pages
+  clean_pages
+  concat_pages
+  cleanup
+  log_message "done"
+}
+
+# Redirect errors to logfile
+main 2>>"$log_file"
