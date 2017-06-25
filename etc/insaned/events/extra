@@ -96,7 +96,9 @@ concat_pages() {
 }
 
 cleanup() {
-  mv "$holding_dir/$out_file" "$final_dir/$out_file"
+  # In case $final_dir doesn't exist
+  mkdir -p "$final_dir"
+  mv "$holding_dir/$out_file" "$final_dir/"
   rm -rf "$holding_dir"
   log_message "PDF file saved as $final_dir/$out_file"
 }
