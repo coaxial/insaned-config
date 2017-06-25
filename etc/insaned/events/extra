@@ -96,7 +96,7 @@ concat_pages() {
 }
 
 cleanup() {
-  mv "$holding_dir/$out_file" "$final_dir"
+  mv "$holding_dir/$out_file" "$final_dir/$out_file"
   rm -rf "$holding_dir"
 }
 
