@@ -35,7 +35,7 @@ scan() {
     --mode gray \
     -x "$paper_width" \
     -y "$paper_height" \
-    --format-tiff
+    --format=tiff
   > "$out_file"
 }
 
