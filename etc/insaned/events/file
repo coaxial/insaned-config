@@ -35,8 +35,8 @@ scan() {
     --mode gray \
     -x "$paper_width" \
     -y "$paper_height" \
-    --format=tiff
-  > "$out_file"
+    --format=tiff \
+    > "$out_file"
 }
 
 main() {
