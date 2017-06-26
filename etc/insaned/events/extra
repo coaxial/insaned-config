@@ -6,7 +6,7 @@ set -euo pipefail
 tmp_dir="/tmp"
 uuid="$(dbus-uuidgen)"
 holding_dir="$tmp_dir/$uuid"
-pages="scan_*.pnm"
+pages="scan_*.tif"
 out_file="$(date "+%Y%m%d_%H%M%S").pdf"
 log_file="/var/log/insaned.log"
 event_name="extra"
@@ -79,15 +79,15 @@ clean_pages() {
 
 concat_pages() {
   # assemble every page to a single PDF
-  page_count="$(find "$holding_dir/" -maxdepth 1 -type f -name "scan_*.pnm" | wc -l)"
+  page_count="$(find "$holding_dir/" -maxdepth 1 -type f -name "scan_*.tif" | wc -l)"
 
   log_message "assembling pages into $out_file"
 
-  files_to_convert="$holding_dir/scan_*.pnm"
+  files_to_convert="$holding_dir/scan_*.tif"
 
   if [ "$CLEAN_PAGES" = true ]
   then
-    files_to_convert="$holding_dir/${clean_prefix}_scan_*.pnm"
+    files_to_convert="$holding_dir/${clean_prefix}_scan_*.tif"
   fi
 
   convert "$files_to_convert" "$holding_dir/$out_file"

@@ -3,7 +3,7 @@
 # exit when a command doesn't exit with 0
 set -euo pipefail
 
-out_file="/tmp/scan_$(date "+%Y%m%d_%H%M%S").pnm"
+out_file="/tmp/scan_$(date "+%Y%m%d_%H%M%S").tif"
 log_file="/var/log/insaned.log"
 event_name="file"
 paper_width="215.9" # mm
@@ -35,6 +35,7 @@ scan() {
     --mode gray \
     -x "$paper_width" \
     -y "$paper_height" \
+    --format-tiff
   > "$out_file"
 }
 
