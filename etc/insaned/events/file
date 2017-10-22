@@ -8,6 +8,8 @@ log_file="/var/log/insaned.log"
 event_name="file"
 paper_width="215.9" # mm
 paper_height="279.4" # mm
+orientation=${PAGE_ORIENTATION:-portrait}
+batch_mode=${BATCH_MODE:-false}
 
 handle_exit() {
   exit_code="$1"
@@ -38,9 +40,22 @@ scan() {
   > "$out_file"
 }
 
+rotate() {
+  if [[ $orientation = l ]]
+  then
+    log_message "landscape page, rotating..."
+    convert -rotate 90 "$out_file" "$out_file-rot"
+    rm "$out_file"
+    mv "$out_file-rot" "$out_file"
+    log_message "page rotated"
+  fi
+}
+
 main() {
   log_message "button pressed, saving page to $out_file"
+  log_message "options: orientation=$orientation, batch_mode=$batch_mode"
   scan
+  rotate
   log_message "page saved to $out_file"
 }
 

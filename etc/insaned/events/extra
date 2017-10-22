@@ -10,12 +10,12 @@ pages="scan_*.pnm"
 out_file="$(date "+%Y%m%d_%H%M%S").pdf"
 log_file="/var/log/insaned.log"
 event_name="extra"
-final_dir="/scans"
+final_dir="$HOME/Documents/scans"
 clean_prefix="clean"
 # /./ is required because of rsync, won't work without it, cf
 # https://unix.stackexchange.com/questions/326457/gnu-parallel-and-basefile-outside-of-pwd/326563#
-textcleaner_location="/./usr/local/lib/textcleaner"
-CLEAN_PAGES=false # switch to true to enable textcleaner (computation
+textcleaner_location="$HOME/Downloads/textcleaner"
+CLEAN_PAGES=true # switch to true to enable textcleaner (computation
 # intensive, slow as molasses on most SBCs)
 
 handle_exit() {
@@ -27,8 +27,7 @@ handle_exit() {
     exit 1
   else
     exit 0
-  fi
-}
+  fi }
 
 trap 'handle_exit $?' EXIT
 
@@ -46,8 +45,10 @@ mv_pages() {
   # Moves pages to a unique directory so they don't get mixed up with the next
   # document scan while this is processing
   log_message "moving pages to $holding_dir/"
+  log_message "moving from $tmp_dir/$pages"
   # shellcheck disable=SC2086
-  mv "$tmp_dir/"$pages "$holding_dir/"
+  mv "$tmp_dir"/$pages "$holding_dir/"
+  log_message "pages moved"
 }
 
 clean_pages() {
@@ -55,21 +56,11 @@ clean_pages() {
   then
     log_message "cleaning pages..."
     log_message "DEBUG: $holding_dir/$pages"
-    # FIXME dont hardcode server list, check if host is up beforehand and use
-    # local if not
-    # Supplying textcleaner as a basefile so any host can run the command without
-    # requiring textcleaner to be installed and executable
     # shellcheck disable=SC2027
     # shellcheck disable=SC2086
-    parallel --workdir ... -S 2/user@scanner-helper \
-      --transferfile "{1}"\
-      --cleanup\
-      --trc "${clean_prefix}_{2/}"\
-      --link\
-      "bash {1} -g {2/} ${clean_prefix}_{2/}"\
-      ::: "$textcleaner_location" ::: "$holding_dir/./"$pages
-      # Won't work without /./ because of rsync cf
-      # https://unix.stackexchange.com/questions/326457/gnu-parallel-and-basefile-outside-of-pwd/326563#
+    parallel \
+      "bash {1} -g {2} {2//}/${clean_prefix}_{2/}"\
+      ::: "$textcleaner_location" ::: "$holding_dir"/$pages
 
     log_message "all pages cleaned"
   else
