@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+scripts_root="./etc/insaned/events"
 pages_scanned=0
 orientation=p
 
@@ -20,30 +21,29 @@ while true; do
   fi
   if [[ $input = "s" ]]; then
     echo "scanning page..."
-    PAGE_ORIENTATION="$orientation" ./etc/insaned/events/file
+    PAGE_ORIENTATION="$orientation" "$scripts_root"/file
     pages_scanned=$((pages_scanned +1))
     echo "ok"
   fi
 
   if [[ $input = "c" ]]; then
     echo "combining pages..."
-    ./etc/insaned/events/extra
+    "$scripts_root"/extra
     echo "ok"
   fi
 
   if [[ $input = "o" ]]; then
     echo "scanning one page document..."
-    PAGE_ORIENTATION="$orientation" ./etc/insaned/events/file
+    PAGE_ORIENTATION="$orientation" "$scripts_root"/file
     pages_scanned=$((pages_scanned +1))
-    echo "hello"
-    ./etc/insaned/events/extra
+    "$scripts_root"/extra
     echo "ok"
   fi
 
   if [[ $input = "b" ]]; then
     echo "batch mode scanning..."
-    BATCH_MODE=true ./etc/insaned/events/file
-    ./etc/insaned/events/extra
+    BATCH_MODE=true "$scripts_root"/file
+    "$scripts_root"/extra
   fi
 
   if [[ $input = "q" ]]; then
