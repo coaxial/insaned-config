@@ -2,7 +2,7 @@
 set -euo pipefail
 
 scripts_root="./etc/insaned/events"
-trimmer_location="$HOME/Downloads/trimmer"
+trimmer_location="./usr/local/lib/trimmer"
 pages_scanned=0
 orientation=p # p or l
 doc_type="ocr" # photo or ocr
