@@ -16,6 +16,7 @@ echo "$(date) | copy: button pressed, sending page to printer..." >> "$LOGFILE"
   --contrast=35 \
   | pnmtops | lp) 2>>"$LOGFILE"
 
+# shellcheck disable=SC2181
 if [ $? = 0 ]
 then
   echo "$(date) | copy: page sent to printer" >> "$LOGFILE"
