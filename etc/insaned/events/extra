@@ -14,7 +14,7 @@ final_dir="$HOME/Documents/scans"
 clean_prefix="clean"
 # /./ is required because of rsync, won't work without it, cf
 # https://unix.stackexchange.com/questions/326457/gnu-parallel-and-basefile-outside-of-pwd/326563#
-textcleaner_location="$HOME/Downloads/textcleaner"
+textcleaner_location="./usr/local/lib/textcleaner"
 CLEAN_PAGES=true # switch to true to enable textcleaner (computation
 # intensive, slow as molasses on most SBCs)
 
