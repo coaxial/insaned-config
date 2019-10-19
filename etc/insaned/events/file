@@ -6,8 +6,10 @@ set -euo pipefail
 out_file="/tmp/scan_$(date "+%Y%m%d_%H%M%S").pnm"
 log_file="/var/log/insaned.log"
 event_name="file"
-paper_width="215.9" # mm
-paper_height="279.4" # mm
+# paper_width="215.9" # mm LTR
+# paper_height="279.4" # mm LTR
+paper_width="210.0" # mm A4
+paper_height="297.0" # mm A4
 orientation=${PAGE_ORIENTATION:-portrait}
 batch_mode=${BATCH_MODE:-false}
 
