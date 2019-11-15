@@ -1,12 +1,10 @@
 language: sh
 
-addons:
-  apt:
-    sources:
-      - debian-sid
-    packages:
-      - shellcheck
-
+before_install:
+  - sudo apt-get -y install xz-utils
+  - wget "https://storage.googleapis.com/shellcheck/shellcheck-stable.linux.x86_64.tar.xz"
+  - tar xf shellcheck-stable.linux.x86_64.tar.xz
+  - sudo cp shellcheck-stable/shellcheck /usr/local/bin
 script:
   - shellcheck -x etc/insaned/events/{file,extra,scan,copy,email}
 
